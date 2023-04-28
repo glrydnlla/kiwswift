@@ -26,15 +26,36 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell") as! AssistantTableViewCell
         cell.titleTxt.text = arrTitle[indexPath.row]
         cell.detailTxt.text = arrDetail[indexPath.row]
+        cell.row = indexPath.row
         cell.updateHandler = {
             self.updateData(cell: cell, indexPath: indexPath)
         }
+            
         return cell
     }
     
-    func updateData(cell:UITableViewCell, indexPath: IndexPath) {
-        
+    func updateData(cell:AssistantTableViewCell, indexPath: IndexPath){
+        let oldTitle = arrTitle[indexPath.row]
+        let oldDetail = arrDetail[indexPath.row]
+        let newDetail = cell.detailTxt
+        let req = NSFetchRequest<NSFetchRequestResult>(entityName: "ToDo")
+        req.predicate = NSPredicate(format: "title==%@", oldTitle)
+        do {
+            let res = try context.fetch(req) as! [NSManagedObject]
+            for todos in res {
+                todos.setValue(newDetail, forKey: "detail")
+            }
+            try context.save()
+            loadData()
+        } catch {
+            
+        }
     }
+    
+//    @IBAction func updateClicked(_ sender: Any) {
+//        updateData(cell: sender., indexPath: IndexPath)
+//    }
+    
     
 
     @IBOutlet weak var titleTxt: UITextField!
@@ -58,6 +79,7 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
             
         }
     }
+    
     
     
     @IBAction func settingsClicked(_ sender: Any) {
@@ -92,6 +114,7 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
         context = appDelegate.persistentContainer.viewContext
         tableView.delegate = self
         tableView.dataSource = self
+        loadData()
         // Do any additional setup after loading the view.
     }
     

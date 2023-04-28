@@ -26,6 +26,10 @@ class RegisterViewController: UIViewController {
         let password = passTxt.text as! String
         let confirm = confirmTxt.text as! String
         
+        if (password.isEmpty || username.isEmpty || confirm.isEmpty) {
+            
+        }
+        
         // mskin db
         let entity = NSEntityDescription.entity(forEntityName: "Users", in: context)
         let newUser = NSManagedObject(entity: entity!, insertInto: context)
