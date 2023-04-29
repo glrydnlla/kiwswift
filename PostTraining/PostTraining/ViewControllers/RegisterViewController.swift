@@ -26,25 +26,43 @@ class RegisterViewController: UIViewController {
         let password = passTxt.text as! String
         let confirm = confirmTxt.text as! String
         
-        if (password.isEmpty || username.isEmpty || confirm.isEmpty) {
+        if (!password.isEmpty && !username.isEmpty && !confirm.isEmpty) {
+            
+            let req = NSFetchRequest<NSFetchRequestResult>(entityName: "Users")
+            req.predicate = NSPredicate(format: "username == %@", username)
+            do {
+                let result = try context.fetch(req) as! [NSManagedObject]
+                if result.count == 0 {
+                    let regex = try! NSRegularExpression(pattern: ".*[^A-Za-z0-9].*", options: NSRegularExpression.Options())
+                    if (regex.firstMatch(in: username, options: NSRegularExpression.MatchingOptions(), range: NSRange(location: 0, length: username.utf16.count)) == nil) {
+                        if (password == confirm) {
+                            // mskin db
+                            let entity = NSEntityDescription.entity(forEntityName: "Users", in: context)
+                            let newUser = NSManagedObject(entity: entity!, insertInto: context)
+                            newUser.setValue(username, forKey: "username")
+                            newUser.setValue(password, forKey: "password")
+                            
+                            do {
+                                try context.save()
+                                if let nextView = storyboard?.instantiateViewController(withIdentifier: "LoginViewController") {
+                                    navigationController?.pushViewController(nextView, animated: true)
+                                }
+                            }
+                            catch {
+                                print("Insert failed")
+                            }
+                        }
+                    }
+                }
+            }
+            catch {
+                
+            }
+            
             
         }
         
-        // mskin db
-        let entity = NSEntityDescription.entity(forEntityName: "Users", in: context)
-        let newUser = NSManagedObject(entity: entity!, insertInto: context)
-        newUser.setValue(username, forKey: "username")
-        newUser.setValue(password, forKey: "password")
         
-        do {
-            try context.save()
-            if let nextView = storyboard?.instantiateViewController(withIdentifier: "LoginViewController") {
-                navigationController?.pushViewController(nextView, animated: true)
-            }
-        }
-        catch {
-            print("Insert failed")
-        }
         
     }
     

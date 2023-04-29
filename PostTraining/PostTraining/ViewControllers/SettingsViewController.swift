@@ -17,6 +17,11 @@ class SettingsViewController: UIViewController {
                 themeSwitch.isOn = true
             }
         }
+        else {
+            if let themeSwitch = self.view.viewWithTag(178) as? UISwitch {
+                themeSwitch.isOn = false
+            }
+        }
         // Do any additional setup after loading the view.
     }
     

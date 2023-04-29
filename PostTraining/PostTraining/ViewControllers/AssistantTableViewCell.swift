@@ -42,6 +42,7 @@ class AssistantTableViewCell: UITableViewCell {
 //    }
     
     var updateHandler: (()->Void)?
+    var deleteHandler: (()->Void)?
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -60,9 +61,14 @@ class AssistantTableViewCell: UITableViewCell {
         guard let t = titleTxt.text, let d = detailTxt.text else {return}
 //        if t!=title || d!=detail {
             updateHandler?()
-        title = t
+            title = t
             detail = d
 //        }
+    }
+    
+    
+    @IBAction func deleteClicked(_ sender: Any) {
+        deleteHandler?()
     }
     
 //    func updateData(cell:AssistantTableViewCell, indexPath: IndexPath){

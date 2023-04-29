@@ -10,6 +10,7 @@ import CoreData
 
 class HomeViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
+    @IBOutlet weak var taskCount: UILabel!
     var arrTitle = [String]()
     var arrDetail = [String]()
     var context:NSManagedObjectContext!
@@ -30,14 +31,16 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
         cell.updateHandler = {
             self.updateData(cell: cell, indexPath: indexPath)
         }
-            
+        cell.deleteHandler = {
+            self.deleteData(indexPath: indexPath)
+        }
         return cell
     }
     
     func updateData(cell:AssistantTableViewCell, indexPath: IndexPath){
         let oldTitle = arrTitle[indexPath.row]
         let oldDetail = arrDetail[indexPath.row]
-        let newDetail = cell.detailTxt
+        let newDetail = cell.detailTxt.text
         let req = NSFetchRequest<NSFetchRequestResult>(entityName: "ToDo")
         req.predicate = NSPredicate(format: "title==%@", oldTitle)
         do {
@@ -52,12 +55,6 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
         }
     }
     
-//    @IBAction func updateClicked(_ sender: Any) {
-//        updateData(cell: sender., indexPath: IndexPath)
-//    }
-    
-    
-
     @IBOutlet weak var titleTxt: UITextField!
     
     @IBOutlet weak var detailTxt: UITextField!
@@ -65,8 +62,8 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
     @IBOutlet weak var tableView: UITableView!
     
     @IBAction func insertClicked(_ sender: Any) {
-        let detail = detailTxt.text!
-        let title = titleTxt.text!
+        let detail = detailTxt.text!.capitalized
+        let title = titleTxt.text!.uppercased()
         let entity = NSEntityDescription.entity(forEntityName: "ToDo", in: context)
         let newAssistant = NSManagedObject(entity: entity!, insertInto: context)
         newAssistant.setValue(detail, forKey: "detail")
@@ -80,8 +77,6 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
         }
     }
     
-    
-    
     @IBAction func settingsClicked(_ sender: Any) {
         print("settings clicked kiw")
         if let nextView = storyboard?.instantiateViewController(withIdentifier: "SettingsViewController") {
@@ -92,16 +87,38 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
     func loadData() {
         arrTitle.removeAll()
         arrDetail.removeAll()
-        
         let req = NSFetchRequest<NSFetchRequestResult>(entityName: "ToDo")
-        
         do {
             let res = try context.fetch(req) as! [NSManagedObject]
             for data in res {
                 arrTitle.append(data.value(forKey: "title") as! String)
                 arrDetail.append(data.value(forKey: "detail") as! String)
             }
+            taskCount.text = "Total task : " + String(res.count)
             tableView.reloadData()
+        }
+        catch {
+            
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            deleteData(indexPath: indexPath)
+        }
+    }
+    
+    func deleteData(indexPath: IndexPath) {
+        let title = arrTitle[indexPath.row]
+        let req = NSFetchRequest<NSFetchRequestResult>(entityName: "ToDo")
+        req.predicate = NSPredicate(format: "title == %@", title)
+        do {
+            let res = try context.fetch(req) as! [NSManagedObject]
+            for data in res {
+                context.delete(data)
+            }
+            try context.save()
+            loadData()
         }
         catch {
             
